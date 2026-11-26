@@ -1,0 +1,24 @@
+name: Build TinyWifiDongle
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+      - name: Install ESP32 Core
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32
+      - name: Compile Sketch
+        run: |
+          mkdir -p ~/Arduino/libraries/TinyWifiDongle
+          cp -r * ~/Arduino/libraries/TinyWifiDongle/
+          arduino-cli compile --fqbn esp32:esp32:esp32s3:USBMode=default,CDCOnBoot=cdc,PSRAM=disabled --export-binaries examples/WifiManager/WifiManager.ino
+      - name: Upload Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: tinywifidongle-s3-bin
+          path: examples/WifiManager/build/esp32.esp32.esp32s3/*.bin
